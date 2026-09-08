@@ -14,3 +14,6 @@ gem 'bigdecimal'
 gem 'logger'
 gem 'benchmark'
 gem 'mutex_m'
+
+# Ruby 4.0 removed nkf (and its kconv) from the standard library; cocoapods still requires it.
+gem 'nkf'

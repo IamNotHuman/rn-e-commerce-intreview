@@ -1,0 +1,34 @@
+#!/bin/sh
+# Pre-commit gate for the RnEcommerce exam project.
+#
+# Runs `npm run check` (typecheck + eslint --max-warnings 0 + jest with the
+# coverage ratchet) before every commit that touches code or config. It turns
+# the gate that CLAUDE.md describes into something that cannot be forgotten.
+# ~6s on this machine.
+#
+# Installed by the `prepare` script in package.json via
+#   git config core.hooksPath .githooks
+# so it is versioned with the repo rather than living in .git/hooks.
+#
+# Known limit: it checks the working tree, not the staged index. A partially
+# staged file is validated in its working-tree form. lint-staged would fix
+# that at the cost of a dependency; not worth it for a single-author exam.
+#
+# Bypass for a deliberate WIP commit: git commit --no-verify
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+
+case "$staged" in
+  *.ts*|*.tsx*|*.js*|*.json*) ;;
+  *)
+    exit 0
+    ;;
+esac
+
+echo "pre-commit: running npm run check"
+if ! npm run check --silent; then
+  echo ""
+  echo "pre-commit: npm run check failed. Fix the errors above, or run"
+  echo "            git commit --no-verify for a deliberate WIP commit."
+  exit 1
+fi

@@ -1,45 +1,30 @@
+import React from 'react';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { persistor, store } from './src/app/store';
+import { RootNavigator } from './src/navigation';
+
 /**
- * Sample React Native App
- * https://github.com/facebook/react-native
+ * Provider order is load-bearing:
  *
- * @format
+ * SafeAreaProvider outermost, because navigation headers read insets from it.
+ * PersistGate inside Provider, since it needs the store it is gating on.
+ * RootNavigator inside both — it reads the effective colour scheme from the
+ * store and mounts ThemeProvider + NavigationContainer from there.
+ *
+ * `loading={null}` renders nothing for the moment the persisted slices are
+ * rehydrating from AsyncStorage — a spinner would flash for less time than it
+ * takes to read.
  */
-
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
-  );
-}
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
+const App = () => (
+  <SafeAreaProvider>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <RootNavigator />
+      </PersistGate>
+    </Provider>
+  </SafeAreaProvider>
+);
 
 export default App;
